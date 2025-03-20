@@ -27,12 +27,8 @@
     "format:check": "prettier --check 'src/**/*.{ts,json}'",
     "prepare": "npm run build && npm run permissions",
     "permissions": "chmod +x ./dist/index.js",
-    "postinstall": "npm run permissions",
-    "prepublishOnly": "npm run lint",
-    "preversion": "npm run lint",
-    "version": "npm run format && git add -A src",
-    "postversion": "git push && git push --tags"
-  },
+    "postinstall": "npm run permissions"
+    },
   "keywords": [
     "deployzzz",
     "gcp",
