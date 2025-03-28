@@ -39,20 +39,28 @@ export class Display {
   }
 
   static showSection(title: string): void {
+    const totalWidth = 50; // Fixed total width
+    const titleLength = title.length;
+    const remainingSpace = totalWidth - titleLength - 2; 
+    const leftPadding = Math.floor(remainingSpace / 2);
+    const rightPadding = remainingSpace - leftPadding;
+
     console.log(
       '\n' +
-      chalk.hex('#4285F4')('━'.repeat(20)) +
-      ' ' +
-      chalk.bold.hex('#4285F4')(title) +
-      ' ' +
-      chalk.hex('#4285F4')('━'.repeat(20)) +
+      chalk.hex('#4285F4')(
+        '━'.repeat(leftPadding) +
+        ' ' +
+        chalk.bold(title) +
+        ' ' +
+        '━'.repeat(rightPadding)
+      ) +
       '\n'
     );
   }
 
   static showSuccess(message: string): void {
-    logger.info(
-      boxen(chalk.green('✓ ') + message, {
+    logger.success(
+      boxen(message, {
         padding: 1,
         margin: { top: 0, bottom: 1, left: 0, right: 0 },
         borderStyle: 'round',
@@ -63,7 +71,7 @@ export class Display {
 
   static showError(message: string): void {
     logger.error(
-      boxen(chalk.red('✗ ') + message, {
+      boxen(message, {
         padding: 1,
         margin: { top: 0, bottom: 1, left: 0, right: 0 },
         borderStyle: 'round',
@@ -74,7 +82,7 @@ export class Display {
 
   static showWarning(message: string): void {
     logger.warn(
-      boxen(chalk.yellow('⚠ ') + message, {
+      boxen(message, {
         padding: 1,
         margin: { top: 0, bottom: 1, left: 0, right: 0 },
         borderStyle: 'round',
@@ -85,7 +93,7 @@ export class Display {
 
   static showInfo(message: string): void {
     logger.info(
-      boxen(chalk.blue('ℹ ') + message, {
+      boxen(message, {
         padding: 1,
         margin: { top: 0, bottom: 1, left: 0, right: 0 },
         borderStyle: 'round',
@@ -100,10 +108,16 @@ export class Display {
       return;
     }
 
-    this.showSection(title);
+    if (title) {
+      this.showSection(title);
+    }
+    
+    const numWidth = items.length.toString().length;
+    
     items.forEach((item, index) => {
+      const number = (index + 1).toString().padStart(numWidth, ' ');
       console.log(
-        chalk.hex('#4285F4')(`${index + 1}.`) +
+        chalk.hex('#4285F4')(`${number}.`) +
         ' ' +
         chalk.white(item)
       );
@@ -117,20 +131,19 @@ export class Display {
       return;
     }
 
-    // Calculer la largeur maximale pour chaque colonne
     const colWidths = headers.map((_, colIndex) => {
       const maxWidth = Math.max(
         headers[colIndex].length,
         ...rows.map(row => row[colIndex]?.length || 0)
       );
-      return maxWidth + 2; // Ajouter un peu d'espace
+      return maxWidth + 2; 
     });
 
-    // Créer la ligne de séparation
-    const separator = '┼' + colWidths.map(w => '─'.repeat(w)).join('┼') + '┼';
+    const topBorder = '┌' + colWidths.map(w => '─'.repeat(w)).join('┬') + '┐';
+    const separator = '├' + colWidths.map(w => '─'.repeat(w)).join('┼') + '┤';
+    const bottomBorder = '└' + colWidths.map(w => '─'.repeat(w)).join('┴') + '┘';
 
-    // Afficher l'en-tête
-    console.log('┌' + colWidths.map(w => '─'.repeat(w)).join('┬') + '┐');
+    console.log(topBorder);
     console.log(
       '│' +
       headers.map((header, i) => 
@@ -140,19 +153,17 @@ export class Display {
     );
     console.log(separator);
 
-    // Afficher les lignes
     rows.forEach(row => {
       console.log(
         '│' +
         row.map((cell, i) => 
-          chalk.white(cell.padEnd(colWidths[i]))
+          chalk.white((cell || '').padEnd(colWidths[i]))
         ).join('│') +
         '│'
       );
     });
 
-    // Afficher la ligne de fin
-    console.log('└' + colWidths.map(w => '─'.repeat(w)).join('┴') + '┘');
+    console.log(bottomBorder);
     console.log('\n');
   }
 

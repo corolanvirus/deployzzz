@@ -12,7 +12,6 @@ export class AuthWorkflow {
    */
   public static async isAuthenticated(): Promise<boolean> {
     try {
-      logger.info('Checking authentication status');
       return await GCPAuthServiceImpl.isAuthenticated();
     } catch (error) {
       logger.error('Failed to check authentication status:', error);
@@ -22,13 +21,12 @@ export class AuthWorkflow {
 
   /**
    * Authenticate with GCP
-   * @param projectId - The GCP project ID
    * @returns Promise<boolean> - True if authentication was successful
    */
-  public static async authenticate(projectId: string): Promise<boolean> {
+  public static async authenticate(): Promise<boolean> {
     try {
-      logger.info(`Authenticating with project ${projectId}`);
-      return await GCPAuthServiceImpl.authenticate(projectId);
+      logger.info('Authenticating with GCP');
+      return await GCPAuthServiceImpl.authenticate();
     } catch (error) {
       logger.error('Failed to authenticate:', error);
       return false;
@@ -75,6 +73,63 @@ export class AuthWorkflow {
     } catch (error) {
       logger.error('Failed to create project:', error);
       return false;
+    }
+  }
+
+  /**
+   * Switch to a different account
+   * @param accountEmail - The email of the account to switch to
+   * @returns Promise<boolean> - True if the account switch was successful
+   */
+  public static async switchAccount(accountEmail: string): Promise<boolean> {
+    try {
+      logger.info('Switching account');
+      return await GCPAuthServiceImpl.switchAccount(accountEmail);
+    } catch (error) {
+      logger.error('Failed to switch account:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Log out from the current account
+   * @returns Promise<boolean> - True if the logout was successful
+   */
+  public static async logout(): Promise<boolean> {
+    try {
+      logger.info('Logging out');
+      return await GCPAuthServiceImpl.logout();
+    } catch (error) {
+      logger.error('Failed to logout:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Add a new account
+   * @returns Promise<boolean> - True if the account was added successfully
+   */
+  public static async addAccount(): Promise<boolean> {
+    try {
+      logger.info('Adding new account');
+      return await GCPAuthServiceImpl.addAccount();
+    } catch (error) {
+      logger.error('Failed to add account:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get current active account
+   * @returns Promise<string | null> - The current active account email or null if not found
+   */
+  public static async getCurrentAccount(): Promise<string | null> {
+    try {
+      logger.info('Getting current account');
+      return await GCPAuthServiceImpl.getCurrentAccount();
+    } catch (error) {
+      logger.error('Failed to get current account:', error);
+      return null;
     }
   }
 } 

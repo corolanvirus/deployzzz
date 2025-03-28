@@ -8,10 +8,8 @@
     "deployzzz": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "build:watch": "tsc --watch",
-    "clean": "rm -rf dist",
-    "prebuild": "npm run clean",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "test": "jest",
@@ -25,9 +23,7 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write 'src/**/*.{ts,json}'",
     "format:check": "prettier --check 'src/**/*.{ts,json}'",
-    "prepare": "npm run build && npm run permissions",
-    "permissions": "chmod +x ./dist/index.js",
-    "postinstall": "npm run permissions"
+    "setup": "npm run build && chmod +x ./dist/index.js && npm link"
   },
   "keywords": [
     "deployzzz",
