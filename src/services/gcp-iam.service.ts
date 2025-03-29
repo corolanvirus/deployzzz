@@ -7,6 +7,9 @@ export interface IAMRole {
 }
 
 export class GCPIAMServiceImpl {
+  /**
+   * List of common IAM roles
+   */
   private static readonly commonRoles: IAMRole[] = [
     { name: 'roles/owner', description: 'Full access to all resources' },
     { name: 'roles/editor', description: 'Edit access to all resources' },
@@ -30,6 +33,10 @@ export class GCPIAMServiceImpl {
 
   /**
    * Add a role to a user
+   * @param projectId - The GCP project ID
+   * @param userEmail - The user email
+   * @param role - The IAM role to add
+   * @returns Promise<boolean> - True if the role was added successfully, false otherwise
    */
   public static async addRoleToUser(projectId: string, userEmail: string, role: string): Promise<boolean> {
     try {
@@ -47,6 +54,10 @@ export class GCPIAMServiceImpl {
 
   /**
    * Remove a role from a user
+   * @param projectId - The GCP project ID
+   * @param userEmail - The user email
+   * @param role - The IAM role to remove
+   * @returns Promise<boolean> - True if the role was removed successfully, false otherwise
    */
   public static async removeRoleFromUser(projectId: string, userEmail: string, role: string): Promise<boolean> {
     try {
@@ -64,6 +75,9 @@ export class GCPIAMServiceImpl {
 
   /**
    * List roles for a user
+   * @param projectId - The GCP project ID
+   * @param userEmail - The user email
+   * @returns Promise<string[]> - List of roles
    */
   public static async listUserRoles(projectId: string, userEmail: string): Promise<string[]> {
     try {
@@ -86,6 +100,7 @@ export class GCPIAMServiceImpl {
 
   /**
    * Get common roles
+   * @returns IAMRole[] - List of common IAM roles
    */
   public static getCommonRoles(): IAMRole[] {
     return this.commonRoles;
@@ -93,6 +108,9 @@ export class GCPIAMServiceImpl {
 
   /**
    * Apply all admin roles to a user
+   * @param projectId - The GCP project ID
+   * @param userEmail - The user email
+   * @returns Promise<boolean> - True if all roles were applied successfully, false otherwise
    */
   public static async applyAllAdminRoles(projectId: string, userEmail: string): Promise<boolean> {
     try {

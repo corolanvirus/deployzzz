@@ -1,5 +1,6 @@
 import { logger } from '../utils/logger.js';
 import { GCPAuthServiceImpl } from '../services/gcp-auth.service.js';
+import { GCPProjectServiceImpl } from '../services/gcp-project.service.js';
 
 /**
  * Workflow class for handling GCP Authentication operations
@@ -37,10 +38,10 @@ export class AuthWorkflow {
    * List all connected accounts
    * @returns Promise<string[]> - List of connected account emails
    */
-  public static async listAccounts(): Promise<string[]> {
+  public static async listAccounts(excludeCurrentAccount: boolean = false): Promise<string[]> {
     try {
       logger.info('Listing connected accounts');
-      return await GCPAuthServiceImpl.listAccounts();
+      return await GCPAuthServiceImpl.listAccounts(excludeCurrentAccount);
     } catch (error) {
       logger.error('Failed to list accounts:', error);
       return [];
@@ -54,7 +55,7 @@ export class AuthWorkflow {
   public static async listProjects(): Promise<string[]> {
     try {
       logger.info('Listing accessible projects');
-      return await GCPAuthServiceImpl.listProjects();
+      return await GCPProjectServiceImpl.listProjects();
     } catch (error) {
       logger.error('Failed to list projects:', error);
       return [];
@@ -66,10 +67,10 @@ export class AuthWorkflow {
    * @param projectId - The GCP project ID to create
    * @returns Promise<boolean> - True if project was created successfully
    */
-  public static async createProject(projectId: string): Promise<boolean> {
+  public static async createProject(projectId: string, name: string): Promise<boolean> {
     try {
       logger.info(`Creating new project ${projectId}`);
-      return await GCPAuthServiceImpl.createProject(projectId);
+      return await GCPProjectServiceImpl.createProject(projectId, name);
     } catch (error) {
       logger.error('Failed to create project:', error);
       return false;

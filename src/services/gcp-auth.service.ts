@@ -1,6 +1,5 @@
 import { execSync } from 'child_process';
 import { logger } from '../utils/logger.js';
-import { GCPConfig } from '../types/index.js';
 
 export class GCPAuthServiceImpl {
   /**
@@ -53,16 +52,21 @@ export class GCPAuthServiceImpl {
   }
 
   /**
-   * List connected accounts (excluding the current one)
+   * List connected accounts
+   * @param excludeCurrentAccount - If true, excludes the current active account from the list
+   * @returns Promise<string[]> - List of account emails
    */
-  public static async listAccounts(): Promise<string[]> {
+  public static async listAccounts(excludeCurrentAccount: boolean = false): Promise<string[]> {
     try {
       const result = execSync('gcloud auth list --format="json"', { stdio: 'pipe' });
-      const accounts = JSON.parse(result.toString());
-      const currentAccount = await this.getCurrentAccount();
-      return accounts
-        .map((account: any) => account.account)
-        .filter((account: string) => account !== currentAccount);
+      const accounts = JSON.parse(result.toString()).map((account: any) => account.account);
+
+      if (excludeCurrentAccount) {
+        const currentAccount = await this.getCurrentAccount();
+        return accounts.filter((account: string) => account !== currentAccount);
+      }
+
+      return accounts;
     } catch (error) {
       logger.error('Failed to list accounts:', error);
       return [];
@@ -70,33 +74,10 @@ export class GCPAuthServiceImpl {
   }
 
   /**
-   * List accessible projects
+   * Switch to a different GCP account
+   * @param accountEmail - The email of the account to switch to
+   * @returns Promise<boolean> - True if the account was switched successfully, false otherwise
    */
-  public static async listProjects(): Promise<string[]> {
-    try {
-      const result = execSync('gcloud projects list --format="json"', { stdio: 'pipe' });
-      const projects = JSON.parse(result.toString());
-      return projects.map((project: any) => project.projectId);
-    } catch (error) {
-      logger.error('Failed to list projects:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Create a new project
-   */
-  public static async createProject(projectId: string): Promise<boolean> {
-    try {
-      execSync(`gcloud projects create ${projectId}`, { stdio: 'inherit' });
-      logger.info('Project created successfully!');
-      return true;
-    } catch (error) {
-      logger.error('Failed to create project:', error);
-      return false;
-    }
-  }
-
   public static async switchAccount(accountEmail: string): Promise<boolean> {
     try {
       execSync(`gcloud config set account ${accountEmail}`, { stdio: 'pipe' });

@@ -3,7 +3,7 @@ import { AuthWorkflow } from '../workflows/auth.workflow.js';
 import { Display } from '../utils/display.js';
 import inquirer from 'inquirer';
 import ora from 'ora';
-import { GCPAuthServiceImpl } from '../services/gcp-auth.service.js';
+import { handleProcessInterruption, isProcessInterruption } from '../utils/process.js';
 
 const auth = new Command();
 
@@ -16,18 +16,12 @@ auth
   .description('Check and manage authentication status')
   .action(async () => {
     try {
-      // Handle interruption
-      process.on('SIGINT', () => {
-        console.log('\nOperation cancelled');
-        process.exit(0);
-      });
-
       Display.showCommandTitle('Authentication Status');
       const spinner = ora('Checking authentication status...').start();
       
       const isAuthenticated = await AuthWorkflow.isAuthenticated();
       const currentAccount = await AuthWorkflow.getCurrentAccount();
-      const otherAccounts = await AuthWorkflow.listAccounts();
+      const otherAccounts = await AuthWorkflow.listAccounts(true);
       
       spinner.stop();
 
@@ -169,7 +163,7 @@ auth
       Display.showCommandTitle('Connected Accounts');
       const spinner = ora('Fetching accounts...').start();
       const currentAccount = await AuthWorkflow.getCurrentAccount();
-      const allAccounts = await GCPAuthServiceImpl.listAllAccounts();
+      const allAccounts = await AuthWorkflow.listAccounts(false);
       spinner.stop();
 
       if (allAccounts.length === 0) {
@@ -178,7 +172,7 @@ auth
       } else {
         Display.showTable(
           ['Account', 'Status'],
-          allAccounts.map((account: string) => [
+          allAccounts.map(account => [
             account,
             account === currentAccount ? '🟢 Active' : '⚪️ Connected'
           ])
@@ -220,7 +214,7 @@ auth
     try {
       Display.showCommandTitle('Create New Project');
       let projectId = options.projectId;
-
+      let name = options.name;
       if (!projectId) {
         const answer = await inquirer.prompt([{
           type: 'input',
@@ -235,7 +229,14 @@ auth
         }]);
         projectId = answer.projectId;
       }
-
+      if (!name) {
+        const answer = await inquirer.prompt([{
+          type: 'input',
+          name: 'name',
+          message: 'Enter project name:',
+        }]);
+        name = answer.name;
+      }
       Display.showWarning('Creating a new project may incur costs');
       const confirm = await inquirer.prompt([{
         type: 'confirm',
@@ -250,7 +251,7 @@ auth
       }
 
       const spinner = ora('Creating project...').start();
-      const success = await AuthWorkflow.createProject(projectId);
+      const success = await AuthWorkflow.createProject(projectId, name)
       spinner.stop();
 
       if (success) {
@@ -268,6 +269,85 @@ auth
       }
     } catch (error) {
       Display.showError(`Error creating project: ${error}`);
+      process.exit(1);
+    }
+  });
+
+auth
+  .command('switch')
+  .description('Switch to another GCP account')
+  .action(async () => {
+    try {
+      Display.showCommandTitle('Switch Account');
+      const spinner = ora('Fetching accounts...').start();
+      const currentAccount = await AuthWorkflow.getCurrentAccount();
+      const otherAccounts = await AuthWorkflow.listAccounts(true);
+      spinner.stop();
+
+      if (otherAccounts.length === 0) {
+        Display.showInfo('No other accounts available to switch to');
+        Display.showInfo('Use "deployzzz auth login" to add another account');
+        return;
+      }
+
+      const { newAccount } = await inquirer.prompt([{
+        type: 'list',
+        name: 'newAccount',
+        message: 'Select account to switch to:',
+        choices: otherAccounts
+      }]);
+
+      const switchSpinner = ora('Switching account...').start();
+      const success = await AuthWorkflow.switchAccount(newAccount);
+      switchSpinner.stop();
+
+      if (success) {
+        Display.showSuccess(`Successfully switched to account: ${newAccount}`);
+        Display.showTable(
+          ['Previous Account', 'Current Account'],
+          [[currentAccount || 'None', newAccount]]
+        );
+      } else {
+        Display.showError('Failed to switch account');
+        process.exit(1);
+      }
+    } catch (error) {
+      Display.showError(`Error switching account: ${error}`);
+      process.exit(1);
+    }
+  });
+
+auth
+  .command('logout')
+  .description('Logout from GCP')
+  .action(async () => {
+    try {
+      Display.showCommandTitle('GCP Logout');
+      
+      const { confirmLogout } = await inquirer.prompt([{
+        type: 'confirm',
+        name: 'confirmLogout',
+        message: 'Are you sure you want to logout? This will revoke all connected accounts.',
+        default: false
+      }]);
+
+      if (!confirmLogout) {
+        Display.showInfo('Logout cancelled');
+        return;
+      }
+
+      const spinner = ora('Logging out...').start();
+      const success = await AuthWorkflow.logout();
+      spinner.stop();
+
+      if (success) {
+        Display.showSuccess('Successfully logged out from all accounts');
+      } else {
+        Display.showError('Failed to logout');
+        process.exit(1);
+      }
+    } catch (error) {
+      Display.showError(`Error during logout: ${error}`);
       process.exit(1);
     }
   });

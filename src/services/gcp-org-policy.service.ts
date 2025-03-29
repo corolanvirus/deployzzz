@@ -30,26 +30,26 @@ export class GCPOrgPolicyService {
    */
   public static async checkOrgPolicy(projectId: string): Promise<void> {
     try {
-      // Récupérer l'ID de l'organisation
+      // Get the organization ID
       const orgId = await this.getOrgId();
       
-      // Vérifier la politique de restriction d'accès public
-      logger.info('Vérification de la politique de restriction d\'accès public...');
+      // Check the public access prevention policy
+      logger.info('Checking public access prevention policy...');
       const policy = await this.getPolicy(
         projectId,
         'constraints/storage.publicAccessPrevention'
       );
       
-      logger.info('État actuel de la politique :');
+      logger.info('Current policy status :');
       logger.info(JSON.stringify(policy, null, 2));
       
-      // Afficher les options pour modifier la politique
-      logger.info('\nOptions pour modifier la politique :');
-      logger.info('1. Désactiver la restriction :');
+      // Display options to modify the policy
+      logger.info('\nOptions to modify the policy :');
+      logger.info('1. Disable the restriction :');
       logger.info(`   gcloud resource-manager org-policies disable-enforce constraints/storage.publicAccessPrevention --organization=${orgId}`);
-      logger.info('\n2. Ajouter une exception pour un bucket spécifique :');
+      logger.info('\n2. Add an exception for a specific bucket :');
       logger.info(`   gcloud resource-manager org-policies set-policy constraints/storage.publicAccessPrevention --organization=${orgId} --policy-file=policy.json`);
-      logger.info('\nExemple de contenu pour policy.json :');
+      logger.info('\nExample content for policy.json :');
       logger.info(`{
         "constraint": "constraints/storage.publicAccessPrevention",
         "listPolicy": {
@@ -58,7 +58,7 @@ export class GCPOrgPolicyService {
       }`);
       
     } catch (error) {
-      logger.error('Erreur lors de la vérification de la politique :', error);
+      logger.error('Error checking the policy :', error);
       throw error;
     }
   }

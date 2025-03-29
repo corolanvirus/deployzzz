@@ -18,6 +18,9 @@ export class GCPBillingServiceImpl {
 
   /**
    * Link a billing account to a project
+   * @param projectId - The GCP project ID
+   * @param billingAccountId - The billing account ID
+   * @returns Promise<boolean> - True if the billing account was linked successfully, false otherwise
    */
   public static async linkBillingAccount(projectId: string, billingAccountId: string): Promise<boolean> {
     try {
@@ -35,6 +38,8 @@ export class GCPBillingServiceImpl {
 
   /**
    * Check if billing is enabled for a project
+   * @param projectId - The GCP project ID
+   * @returns Promise<boolean> - True if billing is enabled, false otherwise
    */
   public static async isBillingEnabled(projectId: string): Promise<boolean> {
     try {

@@ -4,6 +4,7 @@ import { logger } from '../utils/logger.js';
 export class GCPPermissionsServiceImpl {
   /**
    * List user permissions for the current project
+   * @param projectId - The GCP project ID
    * @returns Promise<string[]> - List of permissions
    */
   public static async listPermissions(projectId: string): Promise<string[]> {
